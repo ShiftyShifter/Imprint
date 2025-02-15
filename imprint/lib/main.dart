@@ -85,6 +85,8 @@ class _HomePageState extends State<HomePage> {
   final List<List<Offset>> leftHandPaths = [];
   final List<List<Offset>> rightHandPaths = [];
 
+  bool isDataPanelExpanded = false;
+
   void _handlePointerDown(PointerDownEvent event) {
     setState(() {
       touchPoints[event.pointer] = TouchPoint(
@@ -224,56 +226,89 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-          // Recording buttons at the top
+          // Compact control bar
           Container(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
             decoration: BoxDecoration(
               color: Colors.grey.withOpacity(0.1),
               border: Border(
-                bottom: BorderSide(
-                  color: Colors.grey.withOpacity(0.3),
-                ),
+                bottom: BorderSide(color: Colors.grey.withOpacity(0.3)),
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text(
-                  'Recording ${isRecordingLeftHand ? "Left" : "Right"} Hand',
-                  style: Theme.of(context).textTheme.titleMedium,
+                ToggleButtons(
+                  isSelected: [isRecordingLeftHand, !isRecordingLeftHand],
+                  onPressed: (index) {
+                    setState(() {
+                      isRecordingLeftHand = index == 0;
+                    });
+                  },
+                  children: const [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text('Left'),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text('Right'),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.flag),
-                  label: const Text('Record Start'),
-                  onPressed: () => _recordCurrentPosition(true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 36,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.flag, size: 18),
+                    label: const Text('Start'),
+                    onPressed: () => _recordCurrentPosition(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
                   ),
                 ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.done_all),
-                  label: const Text('Record Finish'),
-                  onPressed: () => _recordCurrentPosition(false),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                SizedBox(
+                  height: 36,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.done_all, size: 18),
+                    label: const Text('Finish'),
+                    onPressed: () => _recordCurrentPosition(false),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
                   ),
                 ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.cleaning_services),
-                  label: const Text('Clear Left Paths'),
-                  onPressed: () => _clearPaths(true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
+                SizedBox(
+                  height: 36,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.cleaning_services, size: 18),
+                    label:
+                        Text('Clear ${isRecordingLeftHand ? "Left" : "Right"}'),
+                    onPressed: () => _clearPaths(isRecordingLeftHand),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          isRecordingLeftHand ? Colors.orange : Colors.red,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
                   ),
                 ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.cleaning_services),
-                  label: const Text('Clear Right Paths'),
-                  onPressed: () => _clearPaths(false),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                  ),
+                IconButton(
+                  icon: Icon(isDataPanelExpanded
+                      ? Icons.chevron_right
+                      : Icons.chevron_left),
+                  onPressed: () {
+                    setState(() {
+                      isDataPanelExpanded = !isDataPanelExpanded;
+                    });
+                  },
+                  tooltip:
+                      '${isDataPanelExpanded ? "Hide" : "Show"} Data Panel',
                 ),
               ],
             ),
@@ -284,7 +319,6 @@ class _HomePageState extends State<HomePage> {
               children: [
                 // Touch area
                 Expanded(
-                  flex: 2,
                   child: Listener(
                     onPointerDown: _handlePointerDown,
                     onPointerMove: _handlePointerMove,
@@ -302,54 +336,58 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                // Data tables
-                Expanded(
-                  flex: 1,
-                  child: Card(
-                    margin: const EdgeInsets.all(8.0),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Recorded Positions',
-                            style: Theme.of(context).textTheme.titleLarge,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildRecordedPositionsTable(
-                              'Left Hand', leftHandData),
-                          const Divider(height: 32),
-                          _buildRecordedPositionsTable(
-                              'Right Hand', rightHandData),
-                          const Divider(height: 32),
-                          Text(
-                            'Current Touch Points',
-                            style: Theme.of(context).textTheme.titleLarge,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          DataTable(
-                            columnSpacing: 16,
-                            columns: const [
-                              DataColumn(label: Text('ID')),
-                              DataColumn(label: Text('X')),
-                              DataColumn(label: Text('Y')),
-                            ],
-                            rows: touchPoints.entries.map((entry) {
-                              final point = entry.value;
-                              return DataRow(
-                                cells: [
-                                  DataCell(Text(entry.key.toString())),
-                                  DataCell(Text(
-                                      point.position.dx.toStringAsFixed(1))),
-                                  DataCell(Text(
-                                      point.position.dy.toStringAsFixed(1))),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                        ],
+                // Data panel
+                Visibility(
+                  visible: isDataPanelExpanded,
+                  maintainState: true,
+                  child: SizedBox(
+                    width: 300,
+                    child: Card(
+                      margin: const EdgeInsets.all(8.0),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Recorded Positions',
+                              style: Theme.of(context).textTheme.titleLarge,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildRecordedPositionsTable(
+                                'Left Hand', leftHandData),
+                            const Divider(height: 32),
+                            _buildRecordedPositionsTable(
+                                'Right Hand', rightHandData),
+                            const Divider(height: 32),
+                            Text(
+                              'Current Touch Points',
+                              style: Theme.of(context).textTheme.titleLarge,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            DataTable(
+                              columnSpacing: 16,
+                              columns: const [
+                                DataColumn(label: Text('ID')),
+                                DataColumn(label: Text('X')),
+                                DataColumn(label: Text('Y')),
+                              ],
+                              rows: touchPoints.entries.map((entry) {
+                                final point = entry.value;
+                                return DataRow(
+                                  cells: [
+                                    DataCell(Text(entry.key.toString())),
+                                    DataCell(Text(
+                                        point.position.dx.toStringAsFixed(1))),
+                                    DataCell(Text(
+                                        point.position.dy.toStringAsFixed(1))),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -549,7 +587,7 @@ class TouchPainter extends CustomPainter {
           ..color = point.isLeftHand ? Colors.blue : Colors.red
           ..style = PaintingStyle.fill,
       );
-      
+
       // Draw the ID
       final textPainter = TextPainter(
         text: TextSpan(
@@ -564,7 +602,8 @@ class TouchPainter extends CustomPainter {
       textPainter.layout();
       textPainter.paint(
         canvas,
-        point.position.translate(-textPainter.width / 2, -textPainter.height / 2),
+        point.position
+            .translate(-textPainter.width / 2, -textPainter.height / 2),
       );
     });
   }
