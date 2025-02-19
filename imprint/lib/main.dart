@@ -145,7 +145,8 @@ class _TouchTrackerState extends State<TouchTracker>
   Offset? _selectedPoint;
 
   // Scroll and zoom state
-  final TransformationController _transformationController = TransformationController();
+  final TransformationController _transformationController =
+      TransformationController();
   double _viewScale = 1.0;
 
   // Undo/redo stacks
@@ -332,70 +333,9 @@ class _TouchTrackerState extends State<TouchTracker>
     );
   }
 
-  Widget _buildVectorControls() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Wrap(
-        spacing: 8.0,
-        runSpacing: 8.0,
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.undo),
-            onPressed: _undoStack.isEmpty ? null : _undo,
-            tooltip: 'Undo',
-          ),
-          IconButton(
-            icon: const Icon(Icons.redo),
-            onPressed: _redoStack.isEmpty ? null : _redo,
-            tooltip: 'Redo',
-          ),
-          const VerticalDivider(),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Scale: '),
-              SizedBox(
-                width: 200,
-                child: Slider(
-                  value: _scale,
-                  min: 0.5,
-                  max: 2.0,
-                  divisions: 30,
-                  label: '${_scale.toStringAsFixed(2)}x',
-                  onChanged: (value) => _handleScale(value),
-                ),
-              ),
-            ],
-          ),
-          const VerticalDivider(),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Rotation: '),
-              SizedBox(
-                width: 200,
-                child: Slider(
-                  value: _rotation,
-                  min: -math.pi,
-                  max: math.pi,
-                  divisions: 36,
-                  label: '${(_rotation * 180 / math.pi).toStringAsFixed(0)}°',
-                  onChanged: (value) => _handleRotation(value),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildVectorView() {
     return Column(
       children: [
-        _buildVectorControls(),
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -419,7 +359,8 @@ class _TouchTrackerState extends State<TouchTracker>
                           height: 600, // Fixed height in pixels
                           decoration: BoxDecoration(
                             color: Colors.grey.withOpacity(0.1),
-                            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                            border:
+                                Border.all(color: Colors.blue.withOpacity(0.3)),
                           ),
                           child: Stack(
                             children: [
@@ -432,13 +373,19 @@ class _TouchTrackerState extends State<TouchTracker>
                               ),
                               GestureDetector(
                                 onPanDown: (details) {
-                                  final point = _findNearestPoint(details.localPosition, leftHandData);
+                                  final point = _findNearestPoint(
+                                      details.localPosition, leftHandData);
                                   if (point != null) {
-                                    _handleVectorDragStart(leftHandData, point.pointIndex, point.isStart, details.localPosition);
+                                    _handleVectorDragStart(
+                                        leftHandData,
+                                        point.pointIndex,
+                                        point.isStart,
+                                        details.localPosition);
                                   }
                                 },
                                 onPanUpdate: (details) {
-                                  _handleVectorDragUpdate(details.localPosition);
+                                  _handleVectorDragUpdate(
+                                      details.localPosition);
                                 },
                                 onPanEnd: (_) {
                                   _handleVectorDragEnd();
@@ -449,7 +396,8 @@ class _TouchTrackerState extends State<TouchTracker>
                                     handData: leftHandData,
                                     color: Colors.blue,
                                     selectedPoint: _selectedPoint,
-                                    isDragging: _isDragging && _activeHandData == leftHandData,
+                                    isDragging: _isDragging &&
+                                        _activeHandData == leftHandData,
                                     scale: _scale,
                                   ),
                                 ),
@@ -474,7 +422,8 @@ class _TouchTrackerState extends State<TouchTracker>
                           height: 600, // Fixed height in pixels
                           decoration: BoxDecoration(
                             color: Colors.grey.withOpacity(0.1),
-                            border: Border.all(color: Colors.red.withOpacity(0.3)),
+                            border:
+                                Border.all(color: Colors.red.withOpacity(0.3)),
                           ),
                           child: Stack(
                             children: [
@@ -487,13 +436,19 @@ class _TouchTrackerState extends State<TouchTracker>
                               ),
                               GestureDetector(
                                 onPanDown: (details) {
-                                  final point = _findNearestPoint(details.localPosition, rightHandData);
+                                  final point = _findNearestPoint(
+                                      details.localPosition, rightHandData);
                                   if (point != null) {
-                                    _handleVectorDragStart(rightHandData, point.pointIndex, point.isStart, details.localPosition);
+                                    _handleVectorDragStart(
+                                        rightHandData,
+                                        point.pointIndex,
+                                        point.isStart,
+                                        details.localPosition);
                                   }
                                 },
                                 onPanUpdate: (details) {
-                                  _handleVectorDragUpdate(details.localPosition);
+                                  _handleVectorDragUpdate(
+                                      details.localPosition);
                                 },
                                 onPanEnd: (_) {
                                   _handleVectorDragEnd();
@@ -504,7 +459,8 @@ class _TouchTrackerState extends State<TouchTracker>
                                     handData: rightHandData,
                                     color: Colors.red,
                                     selectedPoint: _selectedPoint,
-                                    isDragging: _isDragging && _activeHandData == rightHandData,
+                                    isDragging: _isDragging &&
+                                        _activeHandData == rightHandData,
                                     scale: _scale,
                                   ),
                                 ),
@@ -1109,7 +1065,8 @@ class VectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (handData.startPosition == null || handData.finishPosition == null) return;
+    if (handData.startPosition == null || handData.finishPosition == null)
+      return;
 
     final paint = Paint()
       ..color = color
@@ -1136,8 +1093,12 @@ class VectorPainter extends CustomPainter {
       canvas.drawLine(start, finish, paint);
 
       // Draw control points
-      final startRadius = (selectedPoint == start ? selectedPointRadius : controlPointRadius) / scale;
-      final finishRadius = (selectedPoint == finish ? selectedPointRadius : controlPointRadius) / scale;
+      final startRadius =
+          (selectedPoint == start ? selectedPointRadius : controlPointRadius) /
+              scale;
+      final finishRadius =
+          (selectedPoint == finish ? selectedPointRadius : controlPointRadius) /
+              scale;
 
       canvas.drawCircle(start, startRadius, controlPaint);
       canvas.drawCircle(finish, finishRadius, controlPaint);
